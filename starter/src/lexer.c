@@ -3,10 +3,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void print_prompt(void)
+{
+	char *user = getenv("USER");
+	char *machine = getenv("MACHINE");
+	char *pwd = getenv("PWD");
+
+	if (user == NULL)
+		user = "?";
+	
+	if (machine == NULL)
+		machine = "?";
+	
+	if (pwd == NULL)
+		pwd = "?";
+
+	printf("%s@%s:%s> ", user, machine, pwd);
+	fflush(stdout);
+
+}
+
 int main()
 {
 	while (1) {
-		printf("> ");
+		print_prompt();
 
 		/* input contains the whole command
 		 * tokens contains substrings from input split by spaces
