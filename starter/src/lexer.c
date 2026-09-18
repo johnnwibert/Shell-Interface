@@ -36,6 +36,8 @@ int main()
 		printf("whole input: %s\n", input);
 
 		tokenlist *tokens = get_tokens(input);
+		expand_env_variables(tokens);
+
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
@@ -101,6 +103,37 @@ tokenlist *get_tokens(char *input) {
 	}
 	free(buf);
 	return tokens;
+}
+
+void expand_env_variables(tokenlist *tokens)
+{
+	for (size_t i = 0; i < tokens->size; i++)
+	{
+		char *token = tokens->items[i];
+
+		// Expand tokens starting with '$'
+		if (token[0] == '$')
+		{
+			char *variable_name = token + 1;
+			char *variable_value = getenv(variable_name);
+			// If the env variable is undefined, empty string
+			if (variable_value == NULL)
+				variable_value = "";
+			
+			char *expanded = malloc(strlen(variable_value) + 1);
+
+			if (expanded == NULL)
+			{
+				perror("malloc");
+				exit(EXIT_FAILURE);
+			}
+
+			strcpy(expanded, variable_value);
+
+			free(tokens->items[i]);
+			tokens->items[i] = expanded;
+		}
+	}
 }
 
 void free_tokens(tokenlist *tokens) {
