@@ -13,4 +13,5 @@ tokenlist * get_tokens(char *input);
 tokenlist * new_tokenlist(void);
 void add_token(tokenlist *tokens, char *item);
 void expand_env_variables(tokenlist *tokens);
+void expand_tilde(tokenlist *tokens);
 void free_tokens(tokenlist *tokens);

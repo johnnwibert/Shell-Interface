@@ -167,7 +167,7 @@ void expand_tilde(tokenlist *tokens)
 
 		// allocate space for new expanded string
 		// no need for +1 because we're replacing one char, ~, with the home path
-		char *expanded = malloc(strlen(home) + strelen(token));
+		char *expanded = malloc(strlen(home) + strlen(token));
 
 		if (expanded == NULL)
 		{
