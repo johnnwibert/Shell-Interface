@@ -37,6 +37,7 @@ int main()
 
 		tokenlist *tokens = get_tokens(input);
 		expand_env_variables(tokens);
+		expand_tilde(tokens);
 
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
@@ -141,4 +142,46 @@ void free_tokens(tokenlist *tokens) {
 		free(tokens->items[i]);
 	free(tokens->items);
 	free(tokens);
+}
+
+// ~ expands to env variable $HOME
+void expand_tilde(tokenlist *tokens)
+{
+	for (size_t i = 0; i < tokens->size; i++)
+	{
+		char *token = tokens->items[i];
+
+		// skips to next iteration if token does not start with ~
+		if(token[0] != '~')
+			continue;
+
+		// if the char after ~ isn't either the end of the string of /, don't expand it
+		if (token[1] != '\0' && token[1] != '/')
+			continue;
+
+		// get user's home directory
+		char *home = getenv("HOME");
+
+		if (home == NULL)
+			continue;
+
+		// allocate space for new expanded string
+		// no need for +1 because we're replacing one char, ~, with the home path
+		char *expanded = malloc(strlen(home) + strlen(token));
+
+		if (expanded == NULL)
+		{
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
+
+		// copy home directory and append everything after ~
+		// token + 1 means start at the character one position after the beginning of token
+		strcpy(expanded, home);
+		strcat(expanded, token + 1);
+
+		// free (release memory) old token, replace with expanded token
+		free(tokens->items[i]);
+		tokens->items[i] = expanded;
+	}
 }
