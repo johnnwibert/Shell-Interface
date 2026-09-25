@@ -49,5 +49,10 @@ void execute_external(tokenlist *tokens)
         waitpid(pid, NULL, 0);
     }
     
-    free(command);
+    // bug fix; prevents crashing if you type something like /bin/ls
+    // memory should be freed for ls since find_command() makes a new string, this is not the case for /bin/ls
+    if (command != tokens->items[0])
+    {
+        free(command);
+    }
 }
