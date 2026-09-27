@@ -2,6 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "builtins.h"
+#include "jobs.h"
+#include "history.h"
+
+
+
+// TESTING PART 4 IMPLEMENTATION
+#include "path.h"
+
+// TESTING PART 5 IMPLEMENTATION
+#include "e_execute.h"
 
 static void print_prompt(void)
 {
@@ -25,7 +36,9 @@ static void print_prompt(void)
 
 int main()
 {
-	while (1) {
+	jobs_init();	//added by Robert
+	while (!builtins_exit_requested()) {
+		jobs_reap_finished();
 		print_prompt();
 
 		/* input contains the whole command
@@ -43,10 +56,64 @@ int main()
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
 
+		// TESTING PART 4 IMPLEMENTATION
+		/*
+		char *path = find_command(tokens->items[0]);
+		if (path != NULL)
+		{
+			printf("Found command: %s\n", path);
+			free(path);
+		}
+		else
+		{
+			printf("%s: command not found\n", tokens->items[0]);
+		}
+		*/
+
+
+		//Adding Roberts part below this line
+		if(tokens->size == 0) {
+                        free(input);
+                        free_tokens(tokens);
+                        continue;
+                }
+
+                /* PART 8: a trailing '&' means run in the background */
+                int background = 0;
+                if (strcmp(tokens->items[tokens->size - 1], "&") == 0) {
+                        background = 1;
+                        free(tokens->items[tokens->size - 1]);
+                        tokens->size -= 1;
+                        tokens->items[tokens->size] = NULL;
+                }
+
+                if (tokens->size == 0) {
+                        free(input);
+                        free_tokens(tokens);
+                        continue;
+                }
+
+                /* PART 9: built-ins run here, never through execute_external */
+                int ok;
+                int builtin_id = builtin_lookup(tokens->items[0]);
+                if (builtin_id >= 0)
+                        ok = (builtin_run(builtin_id, tokens->size, tokens->items, 0) == 0) ? 0 : -1;
+                else
+                        // TESTING PART 5 IMPLEMENTATION
+                        ok = execute_external(tokens, background, input);
+
+                if (ok == 0 && !builtins_exit_requested())
+                        history_add(input);
+
+		// TESTING PART 5 IMPLEMENTATION
+		//execute_external(tokens);
+
 		free(input);
 		free_tokens(tokens);
 	}
 
+	jobs_cleanup();
+	history_cleanup();
 	return 0;
 }
 

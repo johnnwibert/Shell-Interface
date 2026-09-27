@@ -5,7 +5,7 @@
 
 #define SHELL_NAME "shell"
 
-/* Allocation helpers that abort the shell on out-of-memory. */
+//allocation helpers that abort the shell on an out of mem
 void *xmalloc(size_t n);
 void *xrealloc(void *ptr, size_t n);
 char *xstrdup(const char *s);

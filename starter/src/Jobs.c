@@ -7,51 +7,59 @@
 #include "jobs.h"
 #include "util.h"
 
-typedef struct job {
-    int number;
-    pid_t *pids;      /* one per process in the pipeline; -1 once reaped */
+//never have more than 10 background jobs running at once and never more than 2 pipes
+// at once, and never more than 2 pipes (so at most 3 commands in a pipeline)
+#define MAX_JOBS 10
+#define MAX_PIDS_PER_JOB 3
+#define MAX_CMDLINE 256
+
+typedef struct {
+    int active;             //zeor if this slot is empty / already reaped
+    int number;             //job number shown to the user, like [1], [2]...
+    pid_t pids[MAX_PIDS_PER_JOB];
     int npids;
-    pid_t last_pid;   /* PID reported to the user */
-    char *cmdline;
-    struct job *next;
+    pid_t last_pid;         //the pid we actually print for this job
+    char cmdline[MAX_CMDLINE];
 } job_t;
 
-static job_t *job_head = NULL;
-static job_t *job_tail = NULL;
-static int next_job_number = 1;   /* never decremented: numbers are not reused */
+static job_t jobs[MAX_JOBS];
+static int job_count = 0;         //how many slots in the array are used
+static int next_job_number = 1;   //keeps going up never goes back down
 
 void jobs_init(void)
 {
-    job_head = NULL;
-    job_tail = NULL;
+    for (int i = 0; i < MAX_JOBS; i++)
+        jobs[i].active = 0;
+    job_count = 0;
     next_job_number = 1;
 }
 
-/* Try to reap one child. Returns 1 if it is gone, 0 if it is still running. */
+//checks on one process without blocking
+//returns one if done zero if still running
 static int reap_pid(pid_t pid, int block)
 {
     int status;
 
-    for (;;) {
+    while (1) {
         pid_t r = waitpid(pid, &status, block ? 0 : WNOHANG);
         if (r == pid)
             return 1;
         if (r == 0)
             return 0;
         if (errno == EINTR)
-            continue;
-        return 1;   /* ECHILD etc.: nothing left to wait for */
+            continue;      //interrupted by a signal,try again
+        return 1;          //something like ECHILD, treat it as done
     }
 }
 
-/* Reap what we can of a job. Returns 1 when every process has finished. */
-static int update_job(job_t *j, int block)
+//check every process in one job. returns one once they've all finished
+static int job_is_done(job_t *j, int block)
 {
     int all_done = 1;
 
     for (int i = 0; i < j->npids; i++) {
         if (j->pids[i] < 0)
-            continue;
+            continue;   //already reaped earlier
         if (reap_pid(j->pids[i], block))
             j->pids[i] = -1;
         else
@@ -60,32 +68,25 @@ static int update_job(job_t *j, int block)
     return all_done;
 }
 
-static void free_job(job_t *j)
-{
-    free(j->pids);
-    free(j->cmdline);
-    free(j);
-}
-
 int jobs_add(const pid_t *pids, int npids, const char *cmdline)
 {
-    if (npids <= 0)
+    if (npids <= 0 || npids > MAX_PIDS_PER_JOB || job_count >= MAX_JOBS)
         return -1;
 
-    job_t *j = xmalloc(sizeof *j);
-    j->number = next_job_number++;
-    j->pids = xmalloc((size_t)npids * sizeof(pid_t));
-    memcpy(j->pids, pids, (size_t)npids * sizeof(pid_t));
-    j->npids = npids;
-    j->last_pid = pids[npids - 1];
-    j->cmdline = xstrdup(cmdline);
-    j->next = NULL;
+    job_t *j = &jobs[job_count];
+    job_count++;
 
-    if (job_tail != NULL)
-        job_tail->next = j;
-    else
-        job_head = j;
-    job_tail = j;
+    j->active = 1;
+    j->number = next_job_number;
+    next_job_number++;
+
+    j->npids = npids;
+    for (int i = 0; i < npids; i++)
+        j->pids[i] = pids[i];
+    j->last_pid = pids[npids - 1];
+
+    strncpy(j->cmdline, cmdline, MAX_CMDLINE - 1);
+    j->cmdline[MAX_CMDLINE - 1] = '\0';
 
     printf(JOB_START_FMT, j->number, (int)j->last_pid);
     return j->number;
@@ -93,66 +94,59 @@ int jobs_add(const pid_t *pids, int npids, const char *cmdline)
 
 void jobs_reap_finished(void)
 {
-    job_t *prev = NULL;
-    job_t *j = job_head;
+    for (int i = 0; i < job_count; i++) {
+        if (!jobs[i].active)
+            continue;
 
-    while (j != NULL) {
-        job_t *next = j->next;
-
-        if (update_job(j, 0)) {
-            printf(JOB_DONE_FMT, j->number, j->cmdline);
-            if (prev != NULL)
-                prev->next = next;
-            else
-                job_head = next;
-            if (j == job_tail)
-                job_tail = prev;
-            free_job(j);
-        } else {
-            prev = j;
+        if (job_is_done(&jobs[i], 0)) {
+            printf(JOB_DONE_FMT, jobs[i].number, jobs[i].cmdline);
+            jobs[i].active = 0;
         }
-        j = next;
     }
 }
 
 void jobs_wait_all(void)
 {
-    while (job_head != NULL) {
-        job_t *j = job_head;
+    for (int i = 0; i < job_count; i++) {
+        if (!jobs[i].active)
+            continue;
 
-        update_job(j, 1);
-        printf(JOB_DONE_FMT, j->number, j->cmdline);
-        job_head = j->next;
-        free_job(j);
+        job_is_done(&jobs[i], 1);   //block until this one finishes
+        printf(JOB_DONE_FMT, jobs[i].number, jobs[i].cmdline);
+        jobs[i].active = 0;
     }
-    job_tail = NULL;
 }
 
 void jobs_print_active(void)
 {
-    if (job_head == NULL) {
-        printf("No active background processes.\n");
-        return;
+    int printed = 0;
+
+    for (int i = 0; i < job_count; i++) {
+        if (!jobs[i].active)
+            continue;
+        printf(JOB_LIST_FMT, jobs[i].number, (int)jobs[i].last_pid, jobs[i].cmdline);
+        printed++;
     }
-    for (job_t *j = job_head; j != NULL; j = j->next)
-        printf(JOB_LIST_FMT, j->number, (int)j->last_pid, j->cmdline);
+
+    if (printed == 0)
+        printf("No active background processes.\n");
 }
 
 int jobs_active_count(void)
 {
     int n = 0;
 
-    for (job_t *j = job_head; j != NULL; j = j->next)
-        n++;
+    for (int i = 0; i < job_count; i++) {
+        if (jobs[i].active)
+            n++;
+    }
     return n;
 }
 
 void jobs_cleanup(void)
 {
-    while (job_head != NULL) {
-        job_t *j = job_head;
-        job_head = j->next;
-        free_job(j);
-    }
-    job_tail = NULL;
+    //nothing to free it's just a plain array, reset it anyway
+    for (int i = 0; i < MAX_JOBS; i++)
+        jobs[i].active = 0;
+    job_count = 0;
 }
