@@ -1,52 +1,56 @@
 # Shell
 
-[Description]
+A Unix-style shell written in C that supports prompt display, environment
+variable and tilde expansion, `$PATH` search, external command execution,
+I/O redirection, background processing, and built-in commands (`cd`,
+`exit`, `jobs`).
 
 ## Group Members
-- **John Doe**: jd19@fsu.edu
-- **Jane Smith**: js19@fsu.edu
-- **Alex Brown**: ab19@fsu.edu
+- John Wibert: jnw22c@fsu.edu
+- Armani Ruiz: arj22c@fsu.edu
+- Robert Began: rgb23a@fsu.edu
+  
 ## Division of Labor
 
+### Part 0: Tokenization
+Responsibilities: Provided base lexer (`get_input`, `get_tokens`, tokenlist struct) from the course starter files.
+Assigned to: John Wibert
+
 ### Part 1: Prompt
-- **Responsibilities**: [Description]
-- **Assigned to**: John Doe
+- **Responsibilities**: Displays `USER@MACHINE:PWD>' prompt using environment variables; owns the main loop.
+- **Assigned to**: John Wibert
 
 ### Part 2: Environment Variables
-- **Responsibilities**: [Description]
-- **Assigned to**: Jane Smith
+- **Responsibilities**: Expands `$VAR` tokens to their environment values.
+- **Assigned to**: John Wibert
 
 ### Part 3: Tilde Expansion
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown
+- **Responsibilities**: Expands `~` and `~/...` tokens to `$HOME`.
+- **Assigned to**: Armani Ruiz
 
 ### Part 4: $PATH Search
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown, Jane Smith
+- **Responsibilities**: Searches `$PATH` directories to resolve a command name to an executable path.
+- **Assigned to**: Armani Ruiz
 
 ### Part 5: External Command Execution
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown, Jane Smith
+- **Responsibilities**: Forks a child process and uses `execv()` to run external commands
+- **Assigned to**: Armani Ruiz
 
 ### Part 6: I/O Redirection
-- **Responsibilities**: [Description]
-- **Assigned to**: Jane Smith
+- **Responsibilities**: Parses `<` and `>` out of the token list, opens files with correct permissions (`-rw-------` on output), and redirects stdin/stdout before exec.
+- **Assigned to**: Robert Began
 
 ### Part 7: Piping
 - **Responsibilities**: [Description]
-- **Assigned to**: John Doe
+- **Assigned to**: Armani Ruiz
 
 ### Part 8: Background Processing
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown, John Doe
+- **Responsibilities**: Tracks background jobs with incrementing job numbers, prints start/done messages, and reaps finished jobs each time the prompt is shown.
+- **Assigned to**: Robert Began
 
 ### Part 9: Internal Command Execution
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown
-
-### Part 10: External Timeout Executable
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown, Jane Smith
+- **Responsibilities**: Implements `cd`, `exit`, and `jobs` as built-ins that run inside the shell process rather than through `execv()`.
+- **Assigned to**: Robert Began
 
 ### Extra Credit
 - **Responsibilities**: [Description]
@@ -57,11 +61,24 @@
 shell/
 │
 ├── src/
-│ ├── main.c
-│ └── shell.c
+│ ├── lexer.c — main loop, prompt, tokenizer, env/tilde expansion
+│ ├── path.c — $PATH search (Part 4)
+│ ├── e_execute.c — external command execution (Part 5), calls into redirect/jobs
+│ ├── redirect.c — I/O redirection (Part 6)
+│ ├── Jobs.c — background job tracking (Part 8)
+│ ├── Builtins.c — cd, exit, jobs built-ins (Part 9)
+│ ├── History.c — tracks last 3 valid commands for exit
+│ └── Util.c — shared allocation helpers
 │
 ├── include/
-│ └── shell.h
+│ ├── lexer.h
+│ ├── path.h
+│ ├── e_execute.h
+│ ├── redirect.h
+│ ├── jobs.h
+│ ├── builtins.h
+│ ├── history.h
+│ └── util.h
 │
 ├── README.md
 └── Makefile
@@ -69,31 +86,30 @@ shell/
 ## How to Compile & Execute
 
 ### Requirements
-- **Compiler**: e.g., `gcc` for C/C++, `rustc` for Rust.
-- **Dependencies**: List any libraries or frameworks necessary (rust only).
+- Compiler: `gcc`
+- No external libraries required.
 
 ### Compilation
 For a C/C++ example:
 ```bash
 make
 ```
-This will build the executable in ...
+This builds the executable at `bin/shell`.
 ### Execution
+```bash
+./bin/shell
+```
+or the below
 ```bash
 make run
 ```
-This will run the program ...
-
 ## Development Log
-Each member records their contributions here.
-
-### [Member 1]
-
+### Robert Began
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
+| 2026-09-25 | Got background jobs working (Part 8) - job numbers print when a command starts with `&`, and it prints "done" once they finish. Also added `cd`, `exit`, and `jobs` as built-in commands (Part 9). Merged in Armani's branch for $PATH search and running external commands. |
+| 2026-09-25 | Added I/O redirection (Part 6) - `<` and `>` now work and create files with the right permissions. Connected everything (redirection, background jobs, built-ins) into the main loop so it actually runs. |
+| 2026-09-27 | Tested everything together (redirection, background jobs, built-ins) to make sure it all still works. Fixed a bug where a file didn't save right, and removed some leftover debug print statements before merging. |
 
 ### [Member 2]
 
@@ -113,25 +129,12 @@ Each member records their contributions here.
 | YYYY-MM-DD | [Description of task]  |
 
 
-## Meetings
-Document in-person meetings, their purpose, and what was discussed.
-
-| Date       | Attendees            | Topics Discussed | Outcomes / Decisions |
-|------------|----------------------|------------------|-----------------------|
-| YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
-| YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
-
-
-
 ## Bugs
-- **Bug 1**: This is bug 1.
-- **Bug 2**: This is bug 2.
-- **Bug 3**: This is bug 3.
+- N/A
 
 ## Extra Credit
-- **Extra Credit 1**: [Extra Credit Option]
-- **Extra Credit 2**: [Extra Credit Option]
-- **Extra Credit 3**: [Extra Credit Option]
+N/A
 
 ## Considerations
-[Description]
+- Redirection requires spaces around `<` and `>` (e.g. `echo hi > out.txt`, not `echo hi >out.txt`), since the tokenizer only splits on whitespace.
+- Background job numbers increment and are never reused, per spec, but are capped at 10 total per shell session per the assignment's stated assumption of at most 10 concurrent background jobs.
