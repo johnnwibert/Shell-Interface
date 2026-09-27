@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TESTING PART 4 IMPLEMENTATION
+#include "path.h"
+
+// TESTING PART 5 IMPLEMENTATION
+#include "e_execute.h"
+
 static void print_prompt(void)
 {
 	char *user = getenv("USER");
@@ -42,6 +48,23 @@ int main()
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
+
+		// TESTING PART 4 IMPLEMENTATION
+		/*
+		char *path = find_command(tokens->items[0]);
+		if (path != NULL)
+		{
+			printf("Found command: %s\n", path);
+			free(path);
+		}
+		else
+		{
+			printf("%s: command not found\n", tokens->items[0]);
+		}
+		*/
+
+		// TESTING PART 5 IMPLEMENTATION
+		execute_external(tokens);
 
 		free(input);
 		free_tokens(tokens);
