@@ -42,7 +42,7 @@ Assigned to: John Wibert
 
 ### Part 7: Piping
 - **Responsibilities**: [Description]
-- **Assigned to**: Armani Ruiz
+- **Assigned to**: Armani Ruiz, John Wibert
 
 ### Part 8: Background Processing
 - **Responsibilities**: Tracks background jobs with incrementing job numbers, prints start/done messages, and reaps finished jobs each time the prompt is shown.
@@ -111,13 +111,12 @@ make run
 | 2026-09-25 | Added I/O redirection (Part 6) - `<` and `>` now work and create files with the right permissions. Connected everything (redirection, background jobs, built-ins) into the main loop so it actually runs. |
 | 2026-09-27 | Tested everything together (redirection, background jobs, built-ins) to make sure it all still works. Fixed a bug where a file didn't save right, and removed some leftover debug print statements before merging. |
 
-### [Member 2]
+### John Noel Wibert
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
+| 2026-09-18 | Set up the starter files and uploaded them to Github. Completed tasks 1 and 2. |
+| 2026-09-28 | Continued off Armani's progress on Part 7 to complete it and fixed miscellaneous minor bugs.  |
 
 
 ### [Member 3]
