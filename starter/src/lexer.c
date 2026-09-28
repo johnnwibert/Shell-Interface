@@ -5,6 +5,7 @@
 #include "builtins.h"
 #include "jobs.h"
 #include "history.h"
+#include "piping.h"
 
 
 
@@ -46,11 +47,11 @@ int main()
 		 */
 
 		char *input = get_input();
-		printf("whole input: %s\n", input);
 
 		tokenlist *tokens = get_tokens(input);
 		expand_env_variables(tokens);
 		expand_tilde(tokens);
+<<<<<<< Updated upstream
 
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
@@ -71,6 +72,9 @@ int main()
 		*/
 
 
+=======
+		
+>>>>>>> Stashed changes
 		//Adding Roberts part below this line
 		if(tokens->size == 0) {
                         free(input);
@@ -92,6 +96,64 @@ int main()
                         free_tokens(tokens);
                         continue;
                 }
+
+		// TESTING PART 7 IMPLEMENTATION
+		// counting pipes
+		int pipe_count = count_pipes(tokens);
+		if (pipe_count > 2)
+		{
+			printf("Error: maximum of two pipes allowed\n");
+
+			free(input);
+			free_tokens(tokens);
+			continue;
+		}
+
+		if (pipe_count > 0)
+		{
+			int command_count = pipe_count + 1;
+			char ***commands = split_commands(tokens, pipe_count);
+			int valid_pipeline = 1;
+			for (int i = 0; i < command_count; i++)
+			{
+				if (commands[i][0] == NULL)
+				{
+					valid_pipeline = 0;
+					break;
+				}
+			}
+			int ok = -1;
+			if (!valid_pipeline)
+			{
+				printf("Error: invalid pipeline\n");
+			}
+			else
+			{
+				ok = execute_pipeline(commands, command_count, background, input);
+			}
+			free_commands(commands, command_count);
+
+			if (ok == 0 && !builtins_exit_requested())
+				history_add(input);
+
+			free(input);
+			free_tokens(tokens);
+			continue;
+		}
+
+		// TESTING PART 4 IMPLEMENTATION
+		/*
+		char *path = find_command(tokens->items[0]);
+		if (path != NULL)
+		{
+			printf("Found command: %s\n", path);
+			free(path);
+		}
+		else
+		{
+			printf("%s: command not found\n", tokens->items[0]);
+		}
+		*/
 
                 /* PART 9: built-ins run here, never through execute_external */
                 int ok;

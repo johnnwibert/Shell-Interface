@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-char *find_command(char *command)
+char *find_command(const char *command)
 {
     // For commands that do not include a slash and are not built-in functions
     // strchr() looks for a character in a string
