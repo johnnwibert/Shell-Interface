@@ -111,6 +111,17 @@ make run
 | 2026-09-25 | Added I/O redirection (Part 6) - `<` and `>` now work and create files with the right permissions. Connected everything (redirection, background jobs, built-ins) into the main loop so it actually runs. |
 | 2026-09-27 | Tested everything together (redirection, background jobs, built-ins) to make sure it all still works. Fixed a bug where a file didn't save right, and removed some leftover debug print statements before merging. |
 
+### [Armani Ruiz]
+
+| Date       | Work Completed / Notes |
+|------------|------------------------|
+| 2026-09-20 | Added support for tilde expansion in `lexer.c`; `~` now expands into the environment variable $HOME. Later fixed some minor syntax errors with this implementation.  |
+| 2026-09-21 | Implemented $PATH search to find and identify commands, and temporarily modified `main()` in `lexer.c` to test this implementation.  |
+| 2026-09-23 | Implemented the first iteration of external command execution to execute commands located by $PATH search, and temporarily modified `main()` in `lexer.c` to test this implementation.  |
+| 2026-09-25 | Fixed a small bug with my external command execution that was causing the shell to crash under certain circumstances.  |
+| 2026-09-27 | Addressed some merge conflicts when attempting to merge Robert's changes to main. |
+| 2026-09-28 | Began working on piping before handing the rest off to John. Token list is now split into multiple commands if one or two pipes are present.  |
+
 ### John Noel Wibert
 
 | Date       | Work Completed / Notes |
@@ -118,14 +129,6 @@ make run
 | 2026-09-18 | Set up the starter files and uploaded them to Github. Completed tasks 1 and 2. |
 | 2026-09-28 | Continued off Armani's progress on Part 7 to complete it and fixed miscellaneous minor bugs.  |
 
-
-### [Member 3]
-
-| Date       | Work Completed / Notes |
-|------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
 
 
 ## Bugs
