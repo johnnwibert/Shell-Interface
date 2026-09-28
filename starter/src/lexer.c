@@ -52,6 +52,35 @@ int main()
 		expand_env_variables(tokens);
 		expand_tilde(tokens);
 
+		// TESTING PART 7 IMPLEMENTATION
+		// counting pipes
+		int pipe_count = count_pipes(tokens);
+		if (pipe_count > 2)
+		{
+			printf("Error: maximum of two pipes allowed\n");
+
+			free(input);
+			free_tokens(tokens);
+			continue;
+		}
+		// testing split_commands
+		if (pipe_count > 0)
+		{
+			char ***commands = split_commands(tokens, pipe_count);
+
+			for (int i = 0; i < pipe_count + 1; i++)
+			{
+				printf("Command %d:\n", i);
+
+				for (int j = 0; commands[i][j] != NULL; j++)
+				{
+					printf("    [%s]\n", commands[i][j]);
+				}
+			}
+
+			free_commands(commands, pipe_count + 1);
+		}
+
 		for (int i = 0; i < tokens->size; i++) {
 			printf("token %d: (%s)\n", i, tokens->items[i]);
 		}
@@ -251,4 +280,74 @@ void expand_tilde(tokenlist *tokens)
 		free(tokens->items[i]);
 		tokens->items[i] = expanded;
 	}
+}
+
+// PART 7
+
+// identify and count the number of pipes
+int count_pipes(tokenlist *tokens)
+{
+    // identify pipe tokens "|"
+    int pipe_count = 0;
+    for (int i = 0; i < tokens->size; i++)
+    {
+        if (strcmp(tokens->items[i], "|") == 0)
+        {
+            pipe_count++;
+        }
+    }
+	return pipe_count;
+}
+char ***split_commands(tokenlist *tokens, int pipe_count)
+{
+	// pipe count + 1 because 0 pipes = 1 command, 1 pipe = two commands, etc.
+    char ***commands = malloc((pipe_count + 1) * sizeof(char **));
+
+	if (commands == NULL)
+	{
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+
+	int command_start = 0;
+	int command_index = 0;
+
+	// split the token list into commands
+    for (int i = 0; i <= tokens->size; i++)
+    {
+		// either we found a pipe or reached the end
+        if (i == tokens->size || strcmp(tokens->items[i], "|") == 0)
+        {
+            int argument_count = i - command_start;
+
+			// allocate individual command's argv array, + 1 is for terminating NULL
+			commands[command_index] = malloc((argument_count + 1) * sizeof(char *));
+
+			if (commands[command_index] == NULL)
+			{
+				perror("malloc");
+				exit(EXIT_FAILURE);
+			}
+
+			// copy pointers to original token strings
+			for (int j = 0; j < argument_count; j++)
+			{
+				commands[command_index][j] = tokens->items[command_start + j];
+			}
+
+			// execv() requires NULL termination; set last token of individual command to NULL
+			commands[command_index][argument_count] = NULL;
+
+			command_index++;
+			command_start = i + 1;
+        }
+    }
+	return commands;
+}
+void free_commands(char ***commands, int command_count)
+{
+    for (int i = 0; i < command_count; i++)
+        free(commands[i]);
+
+    free(commands);
 }
