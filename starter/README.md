@@ -52,10 +52,6 @@ Assigned to: John Wibert
 - **Responsibilities**: Implements `cd`, `exit`, and `jobs` as built-ins that run inside the shell process rather than through `execv()`.
 - **Assigned to**: Robert Began
 
-### Extra Credit
-- **Responsibilities**: [Description]
-- **Assigned to**: Alex Brown
-
 ## File Listing
 ```
 shell/
@@ -63,7 +59,6 @@ shell/
 ├── src/
 │ ├── lexer.c — main loop, prompt, tokenizer, env/tilde expansion
 │ ├── path.c — $PATH search (Part 4)
-│ ├── piping.c — piping commands (Part 7)
 │ ├── e_execute.c — external command execution (Part 5), calls into redirect/jobs
 │ ├── redirect.c — I/O redirection (Part 6)
 │ ├── Jobs.c — background job tracking (Part 8)
@@ -74,7 +69,6 @@ shell/
 ├── include/
 │ ├── lexer.h
 │ ├── path.h
-│ ├── piping.h
 │ ├── e_execute.h
 │ ├── redirect.h
 │ ├── jobs.h
@@ -124,13 +118,14 @@ make run
 | 2026-09-27 | Addressed some merge conflicts when attempting to merge Robert's changes to main. |
 | 2026-09-28 | Began working on piping before handing the rest off to John. Token list is now split into multiple commands if one or two pipes are present.  |
 
-### John Noel Wibert
+
+### [Member 3]
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| 2026-09-18 | Set up the starter files and uploaded them to Github. Completed tasks 1 and 2. |
-| 2026-09-28 | Continued off Armani's progress on Part 7 to complete it and fixed miscellaneous minor bugs.  |
-
+| YYYY-MM-DD | [Description of task]  |
+| YYYY-MM-DD | [Description of task]  |
+| YYYY-MM-DD | [Description of task]  |
 
 
 ## Bugs
