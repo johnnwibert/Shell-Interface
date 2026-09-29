@@ -127,6 +127,8 @@ make run
 | 2026-09-18 | Set up the starter files and uploaded them to Github. Completed tasks 1 and 2. |
 | 2026-09-28 | Continued off Armani's progress on Part 7 to complete it and fixed miscellaneous minor bugs.  |
 
+## Group Meetings
+- Group discussed progress and delegated tasks over messages throughout the development process.
 
 ## Considerations
 - Redirection requires spaces around `<` and `>` (e.g. `echo hi > out.txt`, not `echo hi >out.txt`), since the tokenizer only splits on whitespace.
