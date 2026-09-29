@@ -59,6 +59,7 @@ shell/
 ├── src/
 │ ├── lexer.c — main loop, prompt, tokenizer, env/tilde expansion
 │ ├── path.c — $PATH search (Part 4)
+│ ├── piping.c — piping implemented (Part 7)
 │ ├── e_execute.c — external command execution (Part 5), calls into redirect/jobs
 │ ├── redirect.c — I/O redirection (Part 6)
 │ ├── Jobs.c — background job tracking (Part 8)
@@ -69,6 +70,7 @@ shell/
 ├── include/
 │ ├── lexer.h
 │ ├── path.h
+│ ├── piping.h
 │ ├── e_execute.h
 │ ├── redirect.h
 │ ├── jobs.h
