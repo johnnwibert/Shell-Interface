@@ -109,7 +109,7 @@ make run
 | 2026-09-25 | Added I/O redirection (Part 6) - `<` and `>` now work and create files with the right permissions. Connected everything (redirection, background jobs, built-ins) into the main loop so it actually runs. |
 | 2026-09-27 | Tested everything together (redirection, background jobs, built-ins) to make sure it all still works. Fixed a bug where a file didn't save right, and removed some leftover debug print statements before merging. |
 
-### [Armani Ruiz]
+### Armani Ruiz
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
@@ -127,12 +127,6 @@ make run
 | 2026-09-18 | Set up the starter files and uploaded them to Github. Completed tasks 1 and 2. |
 | 2026-09-28 | Continued off Armani's progress on Part 7 to complete it and fixed miscellaneous minor bugs.  |
 
-
-## Bugs
-- N/A
-
-## Extra Credit
-N/A
 
 ## Considerations
 - Redirection requires spaces around `<` and `>` (e.g. `echo hi > out.txt`, not `echo hi >out.txt`), since the tokenizer only splits on whitespace.
