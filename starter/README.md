@@ -118,14 +118,12 @@ make run
 | 2026-09-27 | Addressed some merge conflicts when attempting to merge Robert's changes to main. |
 | 2026-09-28 | Began working on piping before handing the rest off to John. Token list is now split into multiple commands if one or two pipes are present.  |
 
-
-### [Member 3]
+### John Noel Wibert
 
 | Date       | Work Completed / Notes |
 |------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
+| 2026-09-18 | Set up the starter files and uploaded them to Github. Completed tasks 1 and 2. |
+| 2026-09-28 | Continued off Armani's progress on Part 7 to complete it and fixed miscellaneous minor bugs.  |
 
 
 ## Bugs
