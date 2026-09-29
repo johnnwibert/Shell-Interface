@@ -70,11 +70,30 @@ static int job_is_done(job_t *j, int block)
 
 int jobs_add(const pid_t *pids, int npids, const char *cmdline)
 {
-    if (npids <= 0 || npids > MAX_PIDS_PER_JOB || job_count >= MAX_JOBS)
+    if (npids <= 0 || npids > MAX_PIDS_PER_JOB)
         return -1;
 
-    job_t *j = &jobs[job_count];
-    job_count++;
+    int slot = -1;
+
+    for (int i = 0; i < job_count; i++) {
+        if (!jobs[i].active) {
+            slot = i;
+            break;
+        }
+    }
+
+    /*
+    * If no completed slot exists, use a new one.
+    */
+    if (slot == -1) {
+        if (job_count >= MAX_JOBS)
+            return -1;
+
+        slot = job_count;
+        job_count++;
+    }
+
+    job_t *j = &jobs[slot];
 
     j->active = 1;
     j->number = next_job_number;

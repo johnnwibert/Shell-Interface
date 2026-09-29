@@ -5,6 +5,7 @@
 #include "builtins.h"
 #include "jobs.h"
 #include "history.h"
+#include "piping.h"
 
 
 
@@ -46,31 +47,11 @@ int main()
 		 */
 
 		char *input = get_input();
-		printf("whole input: %s\n", input);
 
 		tokenlist *tokens = get_tokens(input);
 		expand_env_variables(tokens);
 		expand_tilde(tokens);
-
-		for (int i = 0; i < tokens->size; i++) {
-			printf("token %d: (%s)\n", i, tokens->items[i]);
-		}
-
-		// TESTING PART 4 IMPLEMENTATION
-		/*
-		char *path = find_command(tokens->items[0]);
-		if (path != NULL)
-		{
-			printf("Found command: %s\n", path);
-			free(path);
-		}
-		else
-		{
-			printf("%s: command not found\n", tokens->items[0]);
-		}
-		*/
-
-
+		
 		//Adding Roberts part below this line
 		if(tokens->size == 0) {
                         free(input);
@@ -92,6 +73,64 @@ int main()
                         free_tokens(tokens);
                         continue;
                 }
+
+		// TESTING PART 7 IMPLEMENTATION
+		// counting pipes
+		int pipe_count = count_pipes(tokens);
+		if (pipe_count > 2)
+		{
+			printf("Error: maximum of two pipes allowed\n");
+
+			free(input);
+			free_tokens(tokens);
+			continue;
+		}
+
+		if (pipe_count > 0)
+		{
+			int command_count = pipe_count + 1;
+			char ***commands = split_commands(tokens, pipe_count);
+			int valid_pipeline = 1;
+			for (int i = 0; i < command_count; i++)
+			{
+				if (commands[i][0] == NULL)
+				{
+					valid_pipeline = 0;
+					break;
+				}
+			}
+			int ok = -1;
+			if (!valid_pipeline)
+			{
+				printf("Error: invalid pipeline\n");
+			}
+			else
+			{
+				ok = execute_pipeline(commands, command_count, background, input);
+			}
+			free_commands(commands, command_count);
+
+			if (ok == 0 && !builtins_exit_requested())
+				history_add(input);
+
+			free(input);
+			free_tokens(tokens);
+			continue;
+		}
+
+		// TESTING PART 4 IMPLEMENTATION
+		/*
+		char *path = find_command(tokens->items[0]);
+		if (path != NULL)
+		{
+			printf("Found command: %s\n", path);
+			free(path);
+		}
+		else
+		{
+			printf("%s: command not found\n", tokens->items[0]);
+		}
+		*/
 
                 /* PART 9: built-ins run here, never through execute_external */
                 int ok;
@@ -251,4 +290,85 @@ void expand_tilde(tokenlist *tokens)
 		free(tokens->items[i]);
 		tokens->items[i] = expanded;
 	}
+}
+
+// Count pipe tokens.
+int count_pipes(tokenlist *tokens)
+{
+    int pipe_count = 0;
+
+    for (size_t i = 0; i < tokens->size; i++) {
+        if (strcmp(tokens->items[i], "|") == 0)
+            pipe_count++;
+    }
+
+    return pipe_count;
+}
+
+// Split the token list into separate NULL-terminated commands.
+char ***split_commands(
+    tokenlist *tokens,
+    int pipe_count
+)
+{
+    int command_count = pipe_count + 1;
+
+    char ***commands =
+        malloc(command_count * sizeof(char **));
+
+    if (commands == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t command_start = 0;
+    int command_index = 0;
+
+    for (size_t i = 0; i <= tokens->size; i++) {
+        if (i == tokens->size ||
+            strcmp(tokens->items[i], "|") == 0) {
+
+            size_t argument_count =
+                i - command_start;
+
+            commands[command_index] =
+                malloc(
+                    (argument_count + 1) *
+                    sizeof(char *)
+                );
+
+            if (commands[command_index] == NULL) {
+                perror("malloc");
+                exit(EXIT_FAILURE);
+            }
+
+            for (size_t j = 0;
+                 j < argument_count;
+                 j++) {
+                commands[command_index][j] =
+                    tokens->items[command_start + j];
+            }
+
+            commands[command_index][argument_count] =
+                NULL;
+
+            command_index++;
+            command_start = i + 1;
+        }
+    }
+
+    return commands;
+}
+
+// Free only the argument arrays.
+// The actual strings still belong to tokenlist.
+void free_commands(
+    char ***commands,
+    int command_count
+)
+{
+    for (int i = 0; i < command_count; i++)
+        free(commands[i]);
+
+    free(commands);
 }
